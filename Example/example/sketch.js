@@ -3,27 +3,30 @@
 var scene = new Scene();
 
 // Create a new GameObject
-var rect = new GameObject();
+var ball = new GameObject();
 
-// Set position and scale
-rect.transform.position = new p5.Vector(50,50);
-rect.transform.scale.mult(30);
+// Add a sprite 
+ball.addComponent(new SpriteRenderer("ball.png"));
 
-rect.addComponent(new Rectangle()); // Placeholder (will be replaced by Sprite)
+// Set position, rotation and scale
+ball.transform.position = new p5.Vector(100,100);
+ball.transform.rotation = 45;
+ball.transform.scale.div(2);
 
 // Create a body to apply physics to the GameObject
-var body = new Body();	
-body.useGravity = true;	
-rect.addComponent(body);
+var body = ball.addComponent(new Body());	
+body.useGravity = true;
+body.addForce(new p5.Vector(4,-5)); 	// The ball is sent in the air 
+body.addTorque(-1);						// And slowly rotate
 
 // Add the GameObject in the scene
-scene.addGameObject(rect);	
+scene.addGameObject(ball);	
 
 
 function setup() {
 	createCanvas(400,400);
 	angleMode(DEGREES);
-	rectMode(CENTER); 	//Place holder
+	imageMode(CENTER);
 }
 function draw() {
 	background(128);
