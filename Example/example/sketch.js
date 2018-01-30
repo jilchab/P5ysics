@@ -34,12 +34,12 @@ body.useGravity = false;
 
 var cam = new GameObject();
 cam.addComponent(new Camera());
-//cam.parent = ball;
+cam.parent = ball;
 
 // Add the GameObject in the scene
 scene.addGameObject(ball);	
 scene.addGameObject(ball2);
-scene.addGameObject(cam);
+scene.camera = cam;
 
 function setup() {
 	createCanvas(WIDTH,HEIGHT);
@@ -49,7 +49,6 @@ function setup() {
 function draw() {
 	background(128);
 	ball.transform.position.x += 1;
-	cam.transform.position.x +=1;
 	scene.update(); 	// Update every GameObject in the scene each frame
 }
 

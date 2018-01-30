@@ -125,18 +125,14 @@ Camera.prototype = {
     constructor : Camera,
     update : function() {
 		if (this.gameObject.parent === undefined) {
-			translate(-this.gameObject.transform.position.x + width/2,
-				-this.gameObject.transform.position.y + height/2);
+			translate(-this.gameObject.transform.position.x,
+				-this.gameObject.transform.position.y);
 			rotate(-this.gameObject.transform.rotation);
-			scale(-this.gameObject.transform.scale.x,
-				-this.gameObject.transform.scale.y);
 		}
 		else {
-			translate(-this.gameObject.parent.transform.position.x,
-				-this.gameObject.parent.transform.position.y);
+			translate(-this.gameObject.parent.transform.position.x + width/2,
+				-this.gameObject.parent.transform.position.y + height/2);
 			rotate(-this.gameObject.parent.transform.rotation);
-			scale(-this.gameObject.parent.transform.scale.x,
-				-this.gameObject.parent.transform.scale.y);
 		}
     }
 };
@@ -196,9 +192,13 @@ function Scene()
 {
 	this._gameObjects = [];
 	this.gravity = GRAVITY;
+	this.camera = undefined;
 }
 Scene.prototype = {
 	update : function() {
+		if(this.camera != undefined) {
+			this.camera.update();
+		}
 		for (var i = 0; i < this._gameObjects.length; i++) {
 			this._gameObjects[i].update();
 		}
