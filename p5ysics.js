@@ -79,7 +79,11 @@ SpriteRenderer.prototype = {
     display :  function() {
         push();
         translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
-        rotate(this.gameObject.transform.rotation);
+		rotate(this.gameObject.transform.rotation);
+		ellipse(0,
+            0,
+            100 * this.gameObject.transform.scale.x,
+            100 * this.gameObject.transform.scale.y);
         image(this.sprite,
             0,
             0,
@@ -116,22 +120,24 @@ Body.prototype =  {
 
 function Camera () {
     Component.call(this, ComponentType.Camera);
-    this.currentPosition = new p5.Vector(WIDTH/2,HEIGHT/2);
-    this.currentRotation = 0;
-    this.currentScale = new p5.Vector(0,0);
 }
 Camera.prototype = {
     constructor : Camera,
     update : function() {
-        translate(this.gameObject.transform.position.x - width/2 - this.currentPosition.x,
-            this.gameObject.transform.position.y - height/2 - this.currentPosition.y);
-        rotate(this.gameObject.transform.rotation - this.currentRotation);
-        scale(this.gameObject.transform.scale.x - this.currentScale.x,
-             this.gameObject.transform.scale.y - this.currentScale.y);
-        this.currentPosition = this.gameObject.transform.position.copy();
-        this.currentPosition.add(width/2,height/2);
-        this.currentRotation = this.gameObject.transform.rotation;
-        this.currentScale = this.gameObject.transform.scale;
+		if (this.gameObject.parent === undefined) {
+			translate(-this.gameObject.transform.position.x + width/2,
+				-this.gameObject.transform.position.y + height/2);
+			rotate(-this.gameObject.transform.rotation);
+			scale(-this.gameObject.transform.scale.x,
+				-this.gameObject.transform.scale.y);
+		}
+		else {
+			translate(-this.gameObject.parent.transform.position.x,
+				-this.gameObject.parent.transform.position.y);
+			rotate(-this.gameObject.parent.transform.rotation);
+			scale(-this.gameObject.parent.transform.scale.x,
+				-this.gameObject.parent.transform.scale.y);
+		}
     }
 };
 
@@ -141,12 +147,17 @@ function GameObject() {
 	this.scene = undefined;
 	this._components = [];
 	this.transform = this.addComponent(new Transform());
+	this.parent = undefined;
+	this.children = [];
 }
 GameObject.prototype = {
 	constructor : GameObject,
 	update : function() {
 		for (var i = 0; i < this._components.length; i++) {
 			this._components[i].update();
+		}
+		for (var i = 0; i < this.children.length; i++) {
+			this.children[i].update();
 		}
 	},
 	addComponent : function(component) {
