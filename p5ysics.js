@@ -14,12 +14,14 @@ function deltaTime() {
 
 var GRAVITY = new p5.Vector(0,0.3);
 var ASSETS_PATH = "/Example/example/assets/";
+var WIDTH = 400;
+var HEIGHT = 400;
 
 var ComponentType =  {
     Transform : 0,
     SpriteRenderer : 1,
     Body : 2,
-    Rectangle : 3,
+    Camera : 3,
 };
 
 function Component(type) {
@@ -71,7 +73,10 @@ function SpriteRenderer (path) {
 }
 SpriteRenderer.prototype = {
     constructor : SpriteRenderer,
-    update : function(deltaTime) {
+    update : function() {
+        this.display();
+    },
+    display :  function() {
         push();
         translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
         rotate(this.gameObject.transform.rotation);
@@ -81,11 +86,12 @@ SpriteRenderer.prototype = {
             this.sprite.width * this.gameObject.transform.scale.x,
             this.sprite.height * this.gameObject.transform.scale.y);
         pop();
-    }
+    },
+
 };
 
 function Body () {
-    Component.call(this, ComponentType.BodyComponent);
+    Component.call(this, ComponentType.Body);
     this.linearVelocity = new p5.Vector(0,0);
     this.angularVelocity = 0.0;
     this.isKinematic = false;
@@ -107,6 +113,28 @@ Body.prototype =  {
         this.angularVelocity += torque;
     },
 };
+
+function Camera () {
+    Component.call(this, ComponentType.Camera);
+    this.currentPosition = new p5.Vector(WIDTH/2,HEIGHT/2);
+    this.currentRotation = 0;
+    this.currentScale = new p5.Vector(0,0);
+}
+Camera.prototype = {
+    constructor : Camera,
+    update : function() {
+        translate(this.gameObject.transform.position.x - width/2 - this.currentPosition.x,
+            this.gameObject.transform.position.y - height/2 - this.currentPosition.y);
+        rotate(this.gameObject.transform.rotation - this.currentRotation);
+        scale(this.gameObject.transform.scale.x - this.currentScale.x,
+             this.gameObject.transform.scale.y - this.currentScale.y);
+        this.currentPosition = this.gameObject.transform.position.copy();
+        this.currentPosition.add(width/2,height/2);
+        this.currentRotation = this.gameObject.transform.rotation;
+        this.currentScale = this.gameObject.transform.scale;
+    }
+};
+
 
 function GameObject() {
 	this.id = getUUID();
@@ -166,7 +194,8 @@ Scene.prototype = {
 	},
 	addGameObject : function(go) {
 		go.scene = this;
-		this._gameObjects.push(go);
+        this._gameObjects.push(go);
+        return go;
 	},
 	deleteGameObject : function(go) {
 		var i = this._gameObjects.findIndex(function(g) {
