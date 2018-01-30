@@ -38,13 +38,44 @@ Component.prototype = {
 
 function Transform() {
 	Component.call(this,ComponentType.Transform);
-	this.position = new p5.Vector(0, 0);
-    this.rotation = 0.0;
-    this.scale = new p5.Vector(1, 1);
+	this._position = new p5.Vector(0, 0);
+    this._rotation = 0.0;
+    this._scale = new p5.Vector(1, 1);
 }
 Transform.prototype = {
 	constructor : Transform,
 	update : function() {
+	},
+	get position(){
+		return this._position;
+	},
+	set position(value){
+		//console.log(value);
+		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
+			var child = this.gameObject.children[i];
+			child.transform.position = p5.Vector.sub(this.position).add(value);
+		}
+		this._position = value;
+	},
+	get rotation(){
+		return this._rotation;
+	},
+	set rotation(value){
+		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
+			var child = this.gameObject.children[i];
+			child.transform.rotation = child.transform.rotation - this.rotation + value;
+		}
+		this._rotation = value;
+	},
+	get scale(){
+		return this._scale;
+	},
+	set scale(value){
+		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
+			var child = this.gameObject.children[i];
+			child.transform.scale = p5.Vector.sub(this.scale).add(value);
+		}
+		this._scale = value;
 	}
 };
 
@@ -143,11 +174,12 @@ function GameObject() {
 	this.scene = undefined;
 	this._components = [];
 	this.transform = this.addComponent(new Transform());
-	this.parent = undefined;
-	this.children = [];
+	this._parent = undefined;
+    this.children = [];
 }
+
 GameObject.prototype = {
-	constructor : GameObject,
+    constructor : GameObject,
 	update : function() {
 		for (var i = 0; i < this._components.length; i++) {
 			this._components[i].update();
@@ -161,7 +193,7 @@ GameObject.prototype = {
 		this._components.push(component);
 		return component;
 	},
-	deleteComponent : function(component) {
+	removeComponent : function(component) {
 		var i = this._components.findIndex(function(c) {
 			return c.id == component.id;
 		});
@@ -182,11 +214,36 @@ GameObject.prototype = {
 		{
 			return false;
 		}
-		this._components.splice(i,1);
+		return this_component[i];
+    },
+    addChild : function(child) {
+		this.children.push(child);
+		return child;
+	},
+	removeChild : function(child) {
+		var i = this.children.findIndex(function(c) {
+			return c == child;
+		});
+		
+		if(i < 0)
+		{
+			return false;
+		}
+		this.children.splice(i,1);
 		return true;
-	}
+	},
+    get parent() {
+        return this._parent;
+    },
+    set parent(newParent) {
+        if(this._parent != undefined) {
+            this._parent.removeChild(this);
+        }
+        this._parent = newParent;
+        newParent.addChild(this);
+    }
 };
-
+//Object.defineProperty(GameObject.prototype,"parent", )
 
 function Scene()
 {
@@ -203,10 +260,11 @@ Scene.prototype = {
 			this._gameObjects[i].update();
 		}
 	},
-	addGameObject : function(go) {
-		go.scene = this;
-        this._gameObjects.push(go);
-        return go;
+	addGameObject : function() {
+        for (var i = 0; i < arguments.length; i++) {
+            arguments[i].scene = this;
+            this._gameObjects.push(arguments[i]);
+        }
 	},
 	deleteGameObject : function(go) {
 		var i = this._gameObjects.findIndex(function(g) {
