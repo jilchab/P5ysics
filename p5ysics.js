@@ -50,12 +50,18 @@ Transform.prototype = {
 		return this._position;
 	},
 	set position(value){
-		//console.log(value);
-		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
+		console.log("Top " + value.x," this "+this.position.x);
+		var i;
+		for(i = 0 ; i < this.gameObject.children.length ; i++) {
 			var child = this.gameObject.children[i];
-			child.transform.position = p5.Vector.sub(this.position).add(value);
+			console.log("Child before " + child.transform.position.x ," This " + this._position.x);
+			child.transform.position = p5.Vector.sub(child.transform.position,this._position).add(value);
+			console.log("Child 	after " + child.transform.position.x);
 		}
+		while(i<this.gameObject.children.length);
+		console.log("Before SET this"  + this.position.x);
 		this._position = value;
+		console.log("After SET this " + this.position.x);
 	},
 	get rotation(){
 		return this._rotation;

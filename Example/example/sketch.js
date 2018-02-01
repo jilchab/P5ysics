@@ -52,11 +52,10 @@ function setup() {
 	frameRate(30);
 }
 function draw() {
-	if(frameCount% 60 == 0) {
-		console.log(frameRate()+" "+frameCount);
-	}
 	background(128);
-	ball.transform.position = ball.transform.position.add(new p5.Vector(1,0));
+	var v = p5.Vector.add(ball.transform.position,new p5.Vector(1,0));
+	console.log("The set is "+ v.x);
+	ball.transform.position = v;
 	//console.log(cam.transform.position.x);
 	scene.update(); 	// Update every GameObject in the scene each frame
 	
