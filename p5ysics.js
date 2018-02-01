@@ -50,18 +50,13 @@ Transform.prototype = {
 		return this._position;
 	},
 	set position(value){
-		console.log("Top " + value.x," this "+this.position.x);
 		var i;
 		for(i = 0 ; i < this.gameObject.children.length ; i++) {
 			var child = this.gameObject.children[i];
-			console.log("Child before " + child.transform.position.x ," This " + this._position.x);
 			child.transform.position = p5.Vector.sub(child.transform.position,this._position).add(value);
-			console.log("Child 	after " + child.transform.position.x);
 		}
 		while(i<this.gameObject.children.length);
-		console.log("Before SET this"  + this.position.x);
 		this._position = value;
-		console.log("After SET this " + this.position.x);
 	},
 	get rotation(){
 		return this._rotation;
@@ -104,9 +99,10 @@ Rectangle.prototype = {
 };
 
 function SpriteRenderer (path) {
-    Component.call(this, ComponentType.SpriteRenderer);
-    new p5();
-    this.sprite = loadImage(ASSETS_PATH+path) ;
+	Component.call(this, ComponentType.SpriteRenderer);
+	new p5();
+	this.sprite = undefined;
+	this.loadRessource(path);
 }
 SpriteRenderer.prototype = {
     constructor : SpriteRenderer,
@@ -127,7 +123,11 @@ SpriteRenderer.prototype = {
             this.sprite.width * this.gameObject.transform.scale.x,
             this.sprite.height * this.gameObject.transform.scale.y);
         pop();
-    },
+	},
+	loadRessource: function(path)
+	{
+		this.sprite = loadImage(ASSETS_PATH+path) ;
+	}
 
 };
 
