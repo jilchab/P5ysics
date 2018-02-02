@@ -54,7 +54,7 @@ function setup() {
 function draw() {
 	background(128);
 	var v = p5.Vector.add(ball.transform.position,new p5.Vector(1,0));
-	zaball.transform.position = v;
+	ball.transform.position = v;
 	scene.update(); 	// Update every GameObject in the scene each frame
 	
 }
