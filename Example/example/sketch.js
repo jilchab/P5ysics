@@ -15,7 +15,7 @@ ball.addComponent(new SpriteRenderer("ball.png"));
 
 // Set position, rotation and scale
 ball.transform.position = new p5.Vector(100,100);
-ball.transform.rotation = 45;
+ball.transform.rotation = 0;
 ball.transform.scale.div(2);
 
 // Create a body to apply physics to the GameObject
@@ -54,7 +54,7 @@ function setup() {
 function draw() {
 	background(128);
 	var v = p5.Vector.add(ball.transform.position,new p5.Vector(1,0));
-	ball.transform.position = v;
+	zaball.transform.position = v;
 	scene.update(); 	// Update every GameObject in the scene each frame
 	
 }

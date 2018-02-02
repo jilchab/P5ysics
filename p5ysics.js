@@ -207,7 +207,7 @@ GameObject.prototype = {
 		for (var i = 0; i < this._components.length; i++) {
 			this._components[i].update();
 		}
-		for (var i = 0; i < this.children.length; i++) {
+		for (i = 0; i < this.children.length; i++) {
 			this.children[i].update();
 		}
 	},
