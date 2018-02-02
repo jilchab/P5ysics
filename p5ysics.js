@@ -100,9 +100,8 @@ Rectangle.prototype = {
 
 function SpriteRenderer (path) {
 	Component.call(this, ComponentType.SpriteRenderer);
-	new p5();
 	this.sprite = undefined;
-	this.loadRessource(path);
+	this.setImage(ASSETS_PATH + path);
 }
 SpriteRenderer.prototype = {
     constructor : SpriteRenderer,
@@ -113,26 +112,42 @@ SpriteRenderer.prototype = {
         push();
         translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
 		rotate(this.gameObject.transform.rotation);
-		ellipse(0,
+		ellipse(
+			0,
             0,
             100 * this.gameObject.transform.scale.x,
             100 * this.gameObject.transform.scale.y);
-        image(this.sprite,
+        image(
+			this.sprite,
             0,
             0,
             this.sprite.width * this.gameObject.transform.scale.x,
             this.sprite.height * this.gameObject.transform.scale.y);
         pop();
 	},
-	loadRessource: function(path)
+	setImage: function(path)
 	{
-		this.sprite = loadImage(ASSETS_PATH+path) ;
-	}
 
+		var img = new Image();
+		var pImg = new p5.Image(1, 1, this);
+		
+		img.onload = function() {
+			pImg.width = pImg.canvas.width = img.width;
+			pImg.height = pImg.canvas.height = img.height;
+		
+			// Draw the image into the backing canvas of the p5.Image
+			pImg.drawingContext.drawImage(img, 0, 0);
+			pImg.modified = true;
+		
+		};
+		img.src = path;
+
+		this.sprite =  pImg;
+	}
 };
 
 function Body () {
-    Component.call(this, ComponentType.Body);
+	Component.call(this, ComponentType.Body);
     this.linearVelocity = new p5.Vector(0,0);
     this.angularVelocity = 0.0;
     this.isKinematic = false;
@@ -162,12 +177,14 @@ Camera.prototype = {
     constructor : Camera,
     update : function() {
 		if (this.gameObject.parent === undefined) {
-			translate(-this.gameObject.transform.position.x,
+			translate(
+				-this.gameObject.transform.position.x,
 				-this.gameObject.transform.position.y);
 			rotate(-this.gameObject.transform.rotation);
 		}
 		else {
-			translate(-this.gameObject.parent.transform.position.x + width/2,
+			translate(
+				-this.gameObject.parent.transform.position.x + width/2,
 				-this.gameObject.parent.transform.position.y + height/2);
 			rotate(-this.gameObject.parent.transform.rotation);
 		}
