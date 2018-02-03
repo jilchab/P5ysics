@@ -32,7 +32,6 @@ function Component(type) {
 Component.prototype = {
     constructor : Component,
     update : function() {
-        console.log("should not go there");
     },
 };
 
@@ -40,43 +39,70 @@ function Transform() {
 	Component.call(this,ComponentType.Transform);
 	this._position = new p5.Vector(0, 0);
     this._rotation = 0.0;
-    this._scale = new p5.Vector(1, 1);
+	this._scale = new p5.Vector(1, 1);
+	this._parent = undefined;
+	this.children = [];
 }
 Transform.prototype = {
 	constructor : Transform,
 	update : function() {
 	},
+	Translate: function(vectorX, Y) {
+		if(arguments.length === 1) {
+			this.position = new p5.Vector.add(this.position,vectorX);
+		} else {
+			this.position = new p5.Vector(this.position.x + vectorX, this.position.y + Y);
+		}
+	},
+	Rotate: function(angle) {
+		this.rotation += angle;
+	},
 	get position(){
 		return this._position;
 	},
 	set position(value){
-		var i;
-		for(i = 0 ; i < this.gameObject.children.length ; i++) {
-			var child = this.gameObject.children[i];
-			child.transform.position = p5.Vector.sub(child.transform.position,this._position).add(value);
-		}
-		while(i<this.gameObject.children.length);
 		this._position = value;
 	},
 	get rotation(){
 		return this._rotation;
 	},
 	set rotation(value){
-		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
-			var child = this.gameObject.children[i];
-			child.transform.rotation = child.transform.rotation - this.rotation + value;
-		}
 		this._rotation = value;
 	},
 	get scale(){
 		return this._scale;
 	},
 	set scale(value){
-		for(var i = 0 ; i < this.gameObject.children.length ; i++) {
-			var child = this.gameObject.children[i];
-			child.transform.scale = p5.Vector.sub(this.scale).add(value);
-		}
 		this._scale = value;
+	},
+	addChild : function(child) {
+		this.children.push(child);
+		return child;
+	},
+	removeChild : function(child) {
+		var i = this.children.findIndex(function(c) {
+			return c == child;
+		});
+		
+		if(i < 0)
+		{
+			return false;
+		}
+		this.children.splice(i,1);
+		return true;
+	},
+    get parent() {
+        return this._parent;
+    },
+    set parent(newParent) {
+        if(this._parent != undefined) {
+            this._parent.removeChild(this);
+        }
+        this._parent = newParent;
+        newParent.addChild(this);
+	},
+	get localSpace() {
+
 	}
 };
 
@@ -87,11 +113,19 @@ function Rectangle() {
 Rectangle.prototype = {
 	constructor : Rectangle,
 	display : function() {
-		push();
-		translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
-		rotate(this.gameObject.transform.rotation);
-		rect(0, 0, this.gameObject.transform.scale.x, this.gameObject.transform.scale.y);
-		pop();
+		if(this.gameObject.transform.parent === undefined) {
+			push();
+			translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
+			rotate(this.gameObject.transform.rotation);
+			rect(0, 0, this.gameObject.transform.scale.x, this.gameObject.transform.scale.y);
+			pop();
+		} else {
+			push();
+			rotate(this.gameObject.transform.rotation + this.gameObject.transform.rotation);
+			translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
+			rect(0, 0, this.gameObject.transform.scale.x, this.gameObject.transform.scale.y);
+			pop();
+		}
 	},
 	update : function() {
 		this.display();
@@ -109,21 +143,48 @@ SpriteRenderer.prototype = {
         this.display();
     },
     display :  function() {
-        push();
-        translate(this.gameObject.transform.position.x,this.gameObject.transform.position.y);
-		rotate(this.gameObject.transform.rotation);
-		ellipse(
-			0,
-            0,
-            100 * this.gameObject.transform.scale.x,
-            100 * this.gameObject.transform.scale.y);
-        image(
-			this.sprite,
-            0,
-            0,
-            this.sprite.width * this.gameObject.transform.scale.x,
-            this.sprite.height * this.gameObject.transform.scale.y);
-        pop();
+		var t = this.gameObject.transform;
+		if(t.parent === undefined) {
+			push();
+			translate(t.position.x,t.position.y);
+			rotate(-t.rotation);
+			ellipse(
+				0,
+				0,
+				100 * t.scale.x,
+				100 * t.scale.y);
+			image(
+				this.sprite,
+				0,
+				0,
+				this.sprite.width * t.scale.x,
+				this.sprite.height * t.scale.y);
+			pop();
+		}
+		else
+		{
+			push();
+			translate(
+				t.parent.position.x,
+				t.parent.position.y);
+			rotate(-t.rotation -t.parent.rotation);
+			translate(
+				t.position.x,
+				t.position.y );
+			
+			ellipse(
+				0,
+				0,
+				100 * t.scale.x * t.parent.scale.x,
+				100 * t.scale.y * t.parent.scale.y);
+			image(
+				this.sprite,
+				0,
+				0,
+				this.sprite.width * t.scale.x * t.parent.scale.x,
+				this.sprite.height * t.scale.y * t.parent.scale.y);
+			pop();
+		}
 	},
 	setImage: function(path)
 	{
@@ -159,8 +220,8 @@ Body.prototype =  {
         if(this.useGravity) {
             this.addForce(this.gameObject.scene.gravity);
         }
-        this.gameObject.transform.position.add(this.linearVelocity);
-        this.gameObject.transform.rotation += this.angularVelocity;
+        //this.gameObject.transform.position.add(this.linearVelocity);
+        //this.gameObject.transform.rotation += this.angularVelocity;
     },
     addForce : function(force) {
         this.linearVelocity.add(force);
@@ -176,7 +237,7 @@ function Camera () {
 Camera.prototype = {
     constructor : Camera,
     update : function() {
-		if (this.gameObject.parent === undefined) {
+		if (this.gameObject.transform.parent === undefined) {
 			translate(
 				-this.gameObject.transform.position.x,
 				-this.gameObject.transform.position.y);
@@ -184,9 +245,9 @@ Camera.prototype = {
 		}
 		else {
 			translate(
-				-this.gameObject.parent.transform.position.x + width/2,
-				-this.gameObject.parent.transform.position.y + height/2);
-			rotate(-this.gameObject.parent.transform.rotation);
+				-this.gameObject.transform.parent.transform.position.x + width/2,
+				-this.gameObject.transform.parent.transform.position.y + height/2);
+			rotate(-this.gameObject.transform.parent.transform.rotation);
 		}
     }
 };
@@ -197,8 +258,6 @@ function GameObject() {
 	this.scene = undefined;
 	this._components = [];
 	this.transform = this.addComponent(new Transform());
-	this._parent = undefined;
-    this.children = [];
 }
 
 GameObject.prototype = {
@@ -207,8 +266,8 @@ GameObject.prototype = {
 		for (var i = 0; i < this._components.length; i++) {
 			this._components[i].update();
 		}
-		for (i = 0; i < this.children.length; i++) {
-			this.children[i].update();
+		for (i = 0; i < this.transform.children.length; i++) {
+			this.transform.children[i].update();
 		}
 	},
 	addComponent : function(component) {
@@ -238,35 +297,8 @@ GameObject.prototype = {
 			return false;
 		}
 		return this_component[i];
-    },
-    addChild : function(child) {
-		this.children.push(child);
-		return child;
-	},
-	removeChild : function(child) {
-		var i = this.children.findIndex(function(c) {
-			return c == child;
-		});
-		
-		if(i < 0)
-		{
-			return false;
-		}
-		this.children.splice(i,1);
-		return true;
-	},
-    get parent() {
-        return this._parent;
-    },
-    set parent(newParent) {
-        if(this._parent != undefined) {
-            this._parent.removeChild(this);
-        }
-        this._parent = newParent;
-        newParent.addChild(this);
     }
 };
-//Object.defineProperty(GameObject.prototype,"parent", )
 
 function Scene()
 {

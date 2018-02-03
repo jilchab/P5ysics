@@ -14,8 +14,7 @@ var ball = new GameObject();
 ball.addComponent(new SpriteRenderer("ball.png"));
 
 // Set position, rotation and scale
-ball.transform.position = new p5.Vector(100,100);
-ball.transform.rotation = 0;
+ball.transform.position = new p5.Vector(200,200);
 ball.transform.scale.div(2);
 
 // Create a body to apply physics to the GameObject
@@ -26,8 +25,8 @@ body.useGravity = false;
 // Create a new GameObject
 var ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer("ball.png"));
-ball2.transform.position = new p5.Vector(200,200);
-ball2.transform.scale.div(3);
+ball2.transform.position = new p5.Vector(50,50);
+ball2.transform.scale.div(2);
 
 // Create a camera
 var cam = new GameObject();
@@ -42,8 +41,7 @@ cam.addComponent(new Camera());
 // Add the GameObject in the scene
 scene.addGameObject(ball,ball2);
 
-ball2.parent = ball;
-
+ball2.transform.parent = ball.transform;
 
 function setup() {
 	createCanvas(WIDTH,HEIGHT);
@@ -53,8 +51,6 @@ function setup() {
 }
 function draw() {
 	background(128);
-	var v = p5.Vector.add(ball.transform.position,new p5.Vector(1,0));
-	ball.transform.position = v;
 	scene.update(); 	// Update every GameObject in the scene each frame
 	
 }
