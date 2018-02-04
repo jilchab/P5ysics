@@ -17,11 +17,6 @@ ball.addComponent(new SpriteRenderer("ball.png"));
 ball.transform.position = new p5.Vector(200,200);
 ball.transform.scale.div(2);
 
-// Create a body to apply physics to the GameObject
-var body = ball.addComponent(new Body());	
-body.useGravity = false;
-
-
 // Create a new GameObject
 var ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer("ball.png"));
@@ -33,10 +28,10 @@ var cam = new GameObject();
 cam.addComponent(new Camera());
 
 // The camera is ball's child
-//cam.parent = ball;
+cam.transform.parent = ball.transform;
 
 // Set the camera to the scene
-//scene.camera = cam;
+scene.camera = cam;
 
 // Add the GameObject in the scene
 scene.addGameObject(ball,ball2);
@@ -51,6 +46,7 @@ function setup() {
 }
 function draw() {
 	background(128);
+	ball2.transform.Rotate(1);
 	scene.update(); 	// Update every GameObject in the scene each frame
 	
 }

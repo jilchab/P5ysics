@@ -100,9 +100,6 @@ Transform.prototype = {
         }
         this._parent = newParent;
         newParent.addChild(this);
-	},
-	get localSpace() {
-
 	}
 };
 
@@ -167,10 +164,11 @@ SpriteRenderer.prototype = {
 			translate(
 				t.parent.position.x,
 				t.parent.position.y);
-			rotate(-t.rotation -t.parent.rotation);
+			rotate(-t.parent.rotation);
 			translate(
 				t.position.x,
 				t.position.y );
+			rotate(-t.rotation);
 			
 			ellipse(
 				0,
@@ -239,15 +237,14 @@ Camera.prototype = {
     update : function() {
 		if (this.gameObject.transform.parent === undefined) {
 			translate(
-				-this.gameObject.transform.position.x,
-				-this.gameObject.transform.position.y);
+				this.gameObject.transform.position.x,
+				this.gameObject.transform.position.y);
 			rotate(-this.gameObject.transform.rotation);
-		}
-		else {
+		} else {
 			translate(
-				-this.gameObject.transform.parent.transform.position.x + width/2,
-				-this.gameObject.transform.parent.transform.position.y + height/2);
-			rotate(-this.gameObject.transform.parent.transform.rotation);
+				-this.gameObject.transform.parent.position.x,
+				-this.gameObject.transform.parent.position.y);
+			rotate(-this.gameObject.transform.parent.rotation);
 		}
     }
 };
