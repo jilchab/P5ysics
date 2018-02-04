@@ -125,7 +125,6 @@ SpriteRenderer.prototype = {
 		var parents = [];
 		var t = this.gameObject.transform;
 		parents.push(t);
-
 		while(t.parent !== undefined) {
 			parents.push(t.parent);
 			t = t.parent;
@@ -136,17 +135,8 @@ SpriteRenderer.prototype = {
 			rotate(-parents[i].rotation);
 			scale(parents[i].scale.x,parents[i].scale.y);
 		}
-		ellipse(
-			0,
-			0,
-			100,
-			100);
-		image(
-			this.sprite,
-			0,
-			0,
-			this.sprite.width,
-			this.sprite.height);
+		ellipse(0,0,100,100);
+		image(this.sprite,0,0,this.sprite.width,this.sprite.height);
 		pop();
 	},
 	setImage: function(path)
