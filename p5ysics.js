@@ -21,7 +21,8 @@ var ComponentType =  {
     Transform : 0,
     SpriteRenderer : 1,
     Body : 2,
-    Camera : 3,
+	Camera : 3,
+	Script: 4
 };
 
 function Component(type) {
@@ -79,9 +80,11 @@ Transform.prototype = {
     set parent(newParent) {
         if(this._parent != undefined) {
             this._parent.removeChild(this);
-        }
-        this._parent = newParent;
-        newParent.addChild(this);
+		}
+		this._parent = newParent;
+		if(newParent !== undefined && newParent !== this) {
+        	newParent.addChild(this);
+		}
 	}
 };
 
@@ -135,7 +138,6 @@ SpriteRenderer.prototype = {
 			rotate(-parents[i].rotation);
 			scale(parents[i].scale.x,parents[i].scale.y);
 		}
-		ellipse(0,0,100,100);
 		image(this.sprite,0,0,this.sprite.width,this.sprite.height);
 		pop();
 	},
@@ -191,14 +193,35 @@ function Camera () {
 Camera.prototype = {
     constructor : Camera,
     update : function() {
-		if(this.parent === undefined) {this.parent = this.gameObject.transform;}
-		translate(
-			-this.gameObject.transform.parent.position.x + width/2,
-			-this.gameObject.transform.parent.position.y + height/2);
-		rotate(this.gameObject.transform.parent.rotation);
+		var parents = [];
+		var t = this.gameObject.transform;
+		parents.push(t);
+		while(t.parent !== undefined && t.parent !== t) {
+			parents.push(t.parent);
+			t = t.parent;
+		}
+		translate(WIDTH/2,HEIGHT/2);
+		for(var i = 0 ; i < parents.length ; i++) {
+			scale(1/parents[i].scale.x, 1/parents[i].scale.y);
+			rotate(parents[i].rotation);
+			translate(-parents[i].position.x, -parents[i].position.y);
+		}
 	}
 };
 
+function Script() {
+	Component.call(this,ComponentType.Script);
+	this._started = false;
+}
+Script.prototype = {
+	update: function() {
+		if(!this._started) {
+			this.Start();
+			this._started = true;
+		}
+		this.Update();
+	}
+};
 
 function GameObject() {
 	this.id = getUUID();
@@ -262,13 +285,13 @@ Scene.prototype = {
 			this._gameObjects[i].update();
 		}
 	},
-	addGameObject : function() {
+	Instanciate : function() {
         for (var i = 0; i < arguments.length; i++) {
             arguments[i].scene = this;
             this._gameObjects.push(arguments[i]);
         }
 	},
-	deleteGameObject : function(go) {
+	Destroy : function(go) {
 		var i = this._gameObjects.findIndex(function(g) {
 			return g.id == go.id;
 		});

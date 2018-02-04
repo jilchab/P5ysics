@@ -2,11 +2,6 @@
 // Create a scene
 var scene = new Scene();
 
-var cam = new GameObject();
-cam.addComponent(new Camera());
-//scene.addGameObject(cam);
-
-
 // Create a new GameObject
 var ball = new GameObject();
 
@@ -14,39 +9,62 @@ var ball = new GameObject();
 ball.addComponent(new SpriteRenderer("ball.png"));
 
 // Set position, rotation and scale
-ball.transform.position = new p5.Vector(150,150);
+ball.transform.position = new p5.Vector(5,5);
+ball.transform.rotation = 45;
 ball.transform.scale.div(2);
 
-// Create a new GameObject
+// Add a script to the ball
+var ballController = ball.addComponent(new Script());
+
+// This function is called one time, when the GameObject is added to the scene
+ballController.Start = function() {
+	this.gameObject.transform.position = new p5.Vector(10,10);
+};
+
+//This function is called each frame
+ballController.Update = function() {
+	this.gameObject.transform.Rotate(1); 		// Rotate the gameobject 1 degree each frame
+	this.gameObject.transform.Translate(1,0);	// Translate 1 pixel to left each frame
+};
+
+// Create a second GameObject
 var ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer("ball.png"));
-ball2.transform.position = new p5.Vector(100,100);
-ball2.transform.scale.div(2);
+
+// ball2 is a child of ball
 ball2.transform.parent = ball.transform;
 
+// This means that its transform is relative to its parent's one
+ball2.transform.position = new p5.Vector(100,100);
+ball2.transform.rotation = -45;
+ball2.transform.scale.div(2);
+
+// Create a third ball
 var ball3 = new GameObject();
 ball3.addComponent(new SpriteRenderer("ball.png"));
 ball3.transform.position = new p5.Vector(100,100);
 ball3.transform.parent = ball2.transform;
 
-var origin = new GameObject();
-origin.addComponent(new SpriteRenderer("ball.png"));
-origin.transform.scale.div(3);
-
 // Create a camera
 var cam = new GameObject();
 cam.addComponent(new Camera());
 
-// The camera is ball's child
-cam.transform.parent = ball2.transform;
-
 // Set the camera to the scene
-//scene.camera = cam;
+scene.camera = cam;
 
-// Add the GameObject in the scene
-scene.addGameObject(ball,ball2,ball3,origin);
+// Add cam a script to follow ball when the mouse is pressed:
+var camController = cam.addComponent(new Script());
+camController.Start = function() {
+	// mandatory, even if empty
+};
+camController.Update = function() {
+	if(mouseIsPressed)
+		this.gameObject.transform.position = ball.transform.position;
+	
+};
 
-
+// Instanciate the gameobjects in the scene
+scene.Instanciate(ball,ball2,ball3);
 
 function setup() {
 	createCanvas(WIDTH,HEIGHT);
@@ -56,10 +74,6 @@ function setup() {
 }
 function draw() {
 	background(128);
-	//ball.transform.Translate(0,-1);
-	//ball.transform.Rotate(1);
-	//ball2.transform.Rotate(2);
 	scene.update(); 	// Update every GameObject in the scene each frame
-	
 }
 
