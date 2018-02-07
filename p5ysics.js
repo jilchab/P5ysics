@@ -58,6 +58,15 @@ Transform.prototype = {
 	Rotate: function(angle) {
 		this.rotation += angle;
 	},
+	Scale: function(vectorX, Y) {
+		if(arguments.length === 1) {
+			this.scale = new p5.Vector(
+				vectorX.x * this.scale.x,
+				vectorX.y * this.scale.y);
+		} else {
+			this.position = new p5.Vector(this.scale.x * vectorX, this.scale.y * Y);
+		}
+	},
 	addChild : function(child) {
 		this.children.push(child);
 		return child;
@@ -85,6 +94,23 @@ Transform.prototype = {
 		if(newParent !== undefined && newParent !== this) {
         	newParent.addChild(this);
 		}
+	},
+	get toWorldSpace () {
+		if(this.parent === undefined) {
+			return this;
+		}
+		var wt = new Transform();
+		var p = this.parent.toWorldSpace;
+		var r = this.position.mag();
+		var da = -this.position.heading();
+		wt.position.x = 
+			p.position.x + r * Math.cos(da+radians(p.rotation)) * p.scale.x;
+		wt.position.y = 	
+			p.position.y - r * Math.sin(da+radians(p.rotation)) * p.scale.y;
+		wt.rotation = p.rotation + this.rotation;
+		wt.scale.x = p.scale.x * this.scale.x;
+		wt.scale.y = p.scale.y * this.scale.y;
+		return wt;
 	}
 };
 

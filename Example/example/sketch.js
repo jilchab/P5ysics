@@ -9,7 +9,7 @@ var ball = new GameObject();
 ball.addComponent(new SpriteRenderer("ball.png"));
 
 // Set position, rotation and scale
-ball.transform.position = new p5.Vector(5,5);
+ball.transform.position = new p5.Vector(0,0);
 ball.transform.rotation = 45;
 ball.transform.scale.div(2);
 
@@ -42,26 +42,24 @@ ball2.transform.scale.div(2);
 // Create a third ball
 var ball3 = new GameObject();
 ball3.addComponent(new SpriteRenderer("ball.png"));
-ball3.transform.position = new p5.Vector(100,100);
-ball3.transform.parent = ball2.transform;
+ball3.transform.position = new p5.Vector(200,200);
 
 // Create a camera
 var cam = new GameObject();
 cam.addComponent(new Camera());
 
-// Set the camera to the scene
+// Set the scene camera
 scene.camera = cam;
 
-// Add cam a script to follow ball when the mouse is pressed:
+// Add cam a script to follow ball2
 var camController = cam.addComponent(new Script());
 camController.Start = function() {
 	// mandatory, even if empty
 };
 camController.Update = function() {
-	if(mouseIsPressed)
-		this.gameObject.transform.position = ball.transform.position;
-	
+	this.gameObject.transform.position = ball2.transform.toWorldSpace.position;
 };
+
 
 // Instanciate the gameobjects in the scene
 scene.Instanciate(ball,ball2,ball3);
@@ -70,7 +68,7 @@ function setup() {
 	createCanvas(WIDTH,HEIGHT);
 	angleMode(DEGREES);
 	imageMode(CENTER);
-	frameRate(30);
+	frameRate(60);
 }
 function draw() {
 	background(128);
