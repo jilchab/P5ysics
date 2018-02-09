@@ -4,7 +4,7 @@
  * 
  */
 
-function getUUID() {
+function getUid() {
     return parseInt(Math.ceil(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER)));
 }
 
@@ -22,19 +22,17 @@ var ComponentType =  {
     SpriteRenderer : 1,
     Body : 2,
 	Camera : 3,
-	Script: 4
+	Script: 4,
+	Collider: 5,
+	CircleCollider: 6,
+	BoxCollider: 7
 };
 
 function Component(type) {
-    this.id = getUUID();
+    this.id = getUid();
 	this.gameObject = undefined;
 	this.type = type;
 }
-Component.prototype = {
-    constructor : Component,
-    update : function() {
-    },
-};
 
 function Transform() {
 	Component.call(this,ComponentType.Transform);
@@ -249,8 +247,90 @@ Script.prototype = {
 	}
 };
 
+function Collider(type) {
+	Component.call(this,type);
+	this.offset = new p5.Vector(0,0);
+	this.size = new p5.Vector(0,0);
+	this.isTrigger = false;
+}
+Collider.prototype = {
+	
+}
+
+function CircleCollider() {
+	Collider.call(this,ComponentType.CircleCollider)
+}
+CircleCollider.prototype  = {
+	constructor: CircleCollider,
+	update: function() {
+		this.display();
+	},
+	isColliding: function(other) {
+		switch(collider.type) {
+			case ComponentType.CircleCollider:
+
+				break;
+			case ComponentType.BoxCollider:
+
+				break;
+			default:
+				break;
+		}	
+	},
+	display: function() {
+		push();
+			translate(
+				this.gameObject.transform.toWorldSpace.position.x + this.offset.x,
+				this.gameObject.transform.toWorldSpace.position.y + this.offset.y,
+			)
+			rotate(-this.gameObject.transform.toWorldSpace.rotation);
+			scale(
+				this.gameObject.transform.toWorldSpace.scale.x,
+				this.gameObject.transform.toWorldSpace.scale.y)
+			noFill();
+			stroke(color(0, 0, 255));
+			strokeWeight(3);
+			ellipse(
+				0,
+				0,
+				this.size.x,
+				this.size.y);
+		pop();
+	},
+	getRadius: function(angle) {
+		angle = angle / 180 * Math.PI;
+		var a = this.size.x;
+		var b = this.size.y;
+		var sin = Math.sin(angle);
+		var cos = Math.cos(angle);
+		return  a*b / Math.sqrt(a*a*sin*sin + b*b*cos*cos);
+	}
+};
+
+function BoxCollider() {
+	Collider.call(this,ComponentType.BoxCollider)
+}
+BoxCollider.prototype  = {
+	constructor: BoxCollider,
+	update: function() {
+		this.display();
+	},
+	display: function() {
+		push();
+			noFill();
+			stroke(color(0, 0, 255));
+			strokeWeight(3);
+			rect(
+				this.gameObject.transform.toWorldSpace.position.x + this.offset.x,
+				this.gameObject.transform.toWorldSpace.position.y + this.offset.y,
+				this.size.x,
+				this.size.y);
+		pop();
+	}
+};
+
 function GameObject() {
-	this.id = getUUID();
+	this.id = getUid();
 	this.scene = undefined;
 	this._components = [];
 	this.transform = this.addComponent(new Transform());

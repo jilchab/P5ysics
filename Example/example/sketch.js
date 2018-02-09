@@ -13,6 +13,10 @@ ball.transform.position = new p5.Vector(0,0);
 ball.transform.rotation = 45;
 ball.transform.scale.div(2);
 
+// Add a CircleCollider to the ball
+var cc = ball.addComponent(new CircleCollider());
+cc.size = new p5.Vector(100,100);
+
 // Add a script to the ball
 var ballController = ball.addComponent(new Script());
 
