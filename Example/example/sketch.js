@@ -27,7 +27,6 @@ ballController.Start = function() {
 
 // This function is called each frame
 ballController.Update = function() {
-	this.gameObject.transform.Rotate(1); 		// Rotate the gameobject 1 degree each frame
 	this.gameObject.transform.Translate(1,0);	// Translate 1 pixel to left each frame
 };
 
@@ -35,12 +34,12 @@ ballController.Update = function() {
 var ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer("ball.png"));
 
-// ball2 is a child of ball
-ball2.transform.parent = ball.transform;
-
 // This means that its transform is relative to its parent's one
 ball2.transform.position = new p5.Vector(100,0);
 ball2.transform.scale.div(2);
+
+var cc2 = ball2.addComponent(new CircleCollider());
+cc2.size = new p5.Vector(100,100);
 
 // Create a third ball
 var ball3 = new GameObject();

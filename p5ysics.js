@@ -249,6 +249,7 @@ Script.prototype = {
 
 function Collider(type) {
 	Component.call(this,type);
+	this.color = undefined;
 	this.offset = new p5.Vector(0,0);
 	this.size = new p5.Vector(0,0);
 	this.isTrigger = false;
@@ -263,13 +264,42 @@ function CircleCollider() {
 CircleCollider.prototype  = {
 	constructor: CircleCollider,
 	update: function() {
+		var colliders = this.listenAround();
+		this.color = color(0, 0, 255);
+
+		for (var i = 0 ; i < colliders.length ; i++) {
+			if(this.isColliding(colliders[i])) {
+				this.color = color(255,0,0);
+			}
+		}
 		this.display();
 	},
+	
+	listenAround: function() {
+		var closeColliders = [];
+		for (var i = 0 ; i < this.gameObject.scene.gameobjects.length ; i++) {
+			var collider = this.gameObject.scene.gameobjects[i].getComponent(ComponentType.CircleCollider);
+			if(collider !== null && collider !== this) {
+				closeColliders.push(collider);
+			}
+		}
+		return closeColliders;
+	},
 	isColliding: function(other) {
-		switch(collider.type) {
+		switch(other.type) {
 			case ComponentType.CircleCollider:
+				var angle = (new p5.Vector(
+					other.gameObject.transform.toWorldSpace.position.x + other.offset.x - 
+					this.gameObject.transform.toWorldSpace.position.x + this.offset.x,
+					other.gameObject.transform.toWorldSpace.position.y + other.offset.y - 
+					this.gameObject.transform.toWorldSpace.position.y + this.offset.y)).heading();
+				angle = angle * 180 / Math.PI;
 
-				break;
+				return this.getRadius(angle)+other.getRadius(angle+180) > 
+					p5.Vector.dist(
+						other.gameObject.transform.toWorldSpace.position,
+						this.gameObject.transform.toWorldSpace.position);
+				
 			case ComponentType.BoxCollider:
 
 				break;
@@ -288,7 +318,7 @@ CircleCollider.prototype  = {
 				this.gameObject.transform.toWorldSpace.scale.x,
 				this.gameObject.transform.toWorldSpace.scale.y)
 			noFill();
-			stroke(color(0, 0, 255));
+			stroke(this.color);
 			strokeWeight(3);
 			ellipse(
 				0,
@@ -299,8 +329,8 @@ CircleCollider.prototype  = {
 	},
 	getRadius: function(angle) {
 		angle = angle / 180 * Math.PI;
-		var a = this.size.x;
-		var b = this.size.y;
+		var a = this.size.x * this.gameObject.transform.toWorldSpace.scale.x /2;
+		var b = this.size.y * this.gameObject.transform.toWorldSpace.scale.y /2;
 		var sin = Math.sin(angle);
 		var cos = Math.cos(angle);
 		return  a*b / Math.sqrt(a*a*sin*sin + b*b*cos*cos);
@@ -365,20 +395,20 @@ GameObject.prototype = {
 	},
 	getComponent : function(type) {
 		var i = this._components.findIndex(function(c) {
-			return c.id == component.id;
+			return c.type == type;
 		});
 		
 		if(i < 0)
 		{
-			return false;
+			return null;
 		}
-		return this_component[i];
+		return this._components[i];
     }
 };
 
 function Scene()
 {
-	this._gameObjects = [];
+	this.gameobjects = [];
 	this.gravity = GRAVITY;
 	this.camera = undefined;
 }
@@ -387,18 +417,18 @@ Scene.prototype = {
 		if(this.camera != undefined) {
 			this.camera.update();
 		}
-		for (var i = 0; i < this._gameObjects.length; i++) {
-			this._gameObjects[i].update();
+		for (var i = 0; i < this.gameobjects.length; i++) {
+			this.gameobjects[i].update();
 		}
 	},
 	Instanciate : function() {
         for (var i = 0; i < arguments.length; i++) {
             arguments[i].scene = this;
-            this._gameObjects.push(arguments[i]);
+            this.gameobjects.push(arguments[i]);
         }
 	},
 	Destroy : function(go) {
-		var i = this._gameObjects.findIndex(function(g) {
+		var i = this.gameobjects.findIndex(function(g) {
 			return g.id == go.id;
 		});
 		
@@ -406,7 +436,7 @@ Scene.prototype = {
 		{
 			return false;
 		}
-		this._gameObjects.splice(i,1);
+		this.gameobjects.splice(i,1);
 		return true;
 	}
 };
