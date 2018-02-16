@@ -240,24 +240,38 @@ function Script() {
 Script.prototype = {
 	update: function() {
 		if(!this._started) {
-			this.Start();
+			if(typeof this.Start === 'function') {
+				this.Start();
+			}
 			this._started = true;
 		}
-		this.Update();
+		if(typeof this.Update === 'function') {
+			this.Update();
+		}
 	}
 };
 
 function Collider(type) {
 	Component.call(this,type);
+	this._collisionInfos = [];
 	this.color = undefined;
 	this.offset = new p5.Vector(0,0);
 	this.size = new p5.Vector(0,0);
 	this.isTrigger = false;
+	this.debugMode = false;
 }
 Collider.prototype = {
 	
 }
 
+function CollisionInfo(collider,other) {
+	this.collider = collider;
+	this.other = other;
+	this.isEntering = true;
+	this.isExiting = false;
+	this.isStaying = true;
+	this.isChecked = false;
+}
 function CircleCollider() {
 	Collider.call(this,ComponentType.CircleCollider)
 }
@@ -270,9 +284,19 @@ CircleCollider.prototype  = {
 		for (var i = 0 ; i < colliders.length ; i++) {
 			if(this.isColliding(colliders[i])) {
 				this.color = color(255,0,0);
+				var info = this.alreadyCollide(colliders[i]);
+				if(info === null) {
+					info = new CollisionInfo(this,colliders[i]);
+					this._collisionInfos.push(info);
+				} else {
+					info
+				}
+				info.isChecked
 			}
 		}
-		this.display();
+		if(this.debugMode) {
+			this.display();
+		}
 	},
 	
 	listenAround: function() {
@@ -306,6 +330,14 @@ CircleCollider.prototype  = {
 			default:
 				break;
 		}	
+	},
+	alreadyCollide: function (other) {
+		this._collisionInfos.forEach(function(info) {
+			if(info.collider === this && info.other === other) {
+				return info;
+			}
+		});
+		return null;
 	},
 	display: function() {
 		push();
@@ -403,6 +435,20 @@ GameObject.prototype = {
 			return null;
 		}
 		return this._components[i];
+	},
+	getComponents : function(type) {
+		var filtered = [];
+		this._components.forEach(function(component){
+			if(type === ComponentType.Collider) {
+				if(component.type === ComponentType.CircleCollider
+					|| component.type === ComponentType.BoxCollider) {
+						filtered.push(component);
+				}
+			} else if(component.type === type){
+				filtered.push(component);
+			}
+		});
+		return filtered;
     }
 };
 

@@ -9,7 +9,7 @@ var ball = new GameObject();
 ball.addComponent(new SpriteRenderer("ball.png"));
 
 // Set position, rotation and scale
-ball.transform.position = new p5.Vector(0,0);
+ball.transform.position = new p5.Vector(10,10);
 ball.transform.rotation = 45;
 ball.transform.scale.div(2);
 
@@ -29,6 +29,10 @@ ballController.Start = function() {
 ballController.Update = function() {
 	this.gameObject.transform.Translate(1,0);	// Translate 1 pixel to left each frame
 };
+
+ballController.OnTriggerStay = function() {
+	this.gameObject.transform.Rotate(10);
+}
 
 // Create a second GameObject
 var ball2 = new GameObject();
@@ -55,13 +59,10 @@ scene.camera = cam;
 
 // Add cam a script to follow ball2
 var camController = cam.addComponent(new Script());
-camController.Start = function() {
-	// mandatory, even if empty
-};
+
 camController.Update = function() {
 	this.gameObject.transform.position = ball2.transform.toWorldSpace.position;
 };
-
 
 // Instanciate the gameobjects in the scene
 scene.Instanciate(ball,ball2,ball3);
