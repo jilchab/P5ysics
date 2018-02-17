@@ -30,9 +30,12 @@ ballController.Update = function() {
 	this.gameObject.transform.Translate(1,0);	// Translate 1 pixel to left each frame
 };
 
-ballController.OnTriggerStay = function() {
-	this.gameObject.transform.Rotate(10);
-}
+ballController.OnTriggerEnter = function(other) {
+	this.gameObject.transform.Rotate(90);
+};
+ballController.OnTriggerExit = function(other) {
+	this.gameObject.transform.Rotate(-90);
+};
 
 // Create a second GameObject
 var ball2 = new GameObject();

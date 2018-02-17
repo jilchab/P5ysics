@@ -261,11 +261,10 @@ function Collider(type) {
 	this.debugMode = false;
 }
 Collider.prototype = {
-	
-}
+	constructor: CircleCollider
+};
 
-function CollisionInfo(collider,other) {
-	this.collider = collider;
+function CollisionInfo(other) {
 	this.other = other;
 	this.isEntering = true;
 	this.isExiting = false;
@@ -273,7 +272,7 @@ function CollisionInfo(collider,other) {
 	this.isChecked = false;
 }
 function CircleCollider() {
-	Collider.call(this,ComponentType.CircleCollider)
+	Collider.call(this,ComponentType.CircleCollider);
 }
 CircleCollider.prototype  = {
 	constructor: CircleCollider,
@@ -284,15 +283,28 @@ CircleCollider.prototype  = {
 		for (var i = 0 ; i < colliders.length ; i++) {
 			if(this.isColliding(colliders[i])) {
 				this.color = color(255,0,0);
-				var info = this.alreadyCollide(colliders[i]);
+				var info = this.getCollisionInfo(colliders[i]);
 				if(info === null) {
-					info = new CollisionInfo(this,colliders[i]);
+					info = new CollisionInfo(colliders[i]);
 					this._collisionInfos.push(info);
 				} else {
-					info
+					info.isEntering = false;
 				}
-				info.isChecked
+				info.isChecked = true;
 			}
+			else {
+				this._collisionInfos.forEach(function(info) {
+					if(info.isChecked === false) {
+						info.isStaying = false;
+						info.isExiting = true;
+					}
+				});
+			}
+			
+			this.callScriptsMethods();
+			this.deleteExitingCollisionInfo();
+			this.resetCollisionInfo();
+
 		}
 		if(this.debugMode) {
 			this.display();
@@ -331,24 +343,24 @@ CircleCollider.prototype  = {
 				break;
 		}	
 	},
-	alreadyCollide: function (other) {
-		this._collisionInfos.forEach(function(info) {
-			if(info.collider === this && info.other === other) {
-				return info;
+	getCollisionInfo: function (other) {
+		for(var i = 0 ; i < this._collisionInfos.length ; i++) {
+			if(this._collisionInfos[i].other === other) {
+				return this._collisionInfos[i];
 			}
-		});
+		}
 		return null;
 	},
 	display: function() {
 		push();
 			translate(
 				this.gameObject.transform.toWorldSpace.position.x + this.offset.x,
-				this.gameObject.transform.toWorldSpace.position.y + this.offset.y,
-			)
+				this.gameObject.transform.toWorldSpace.position.y + this.offset.y
+			);
 			rotate(-this.gameObject.transform.toWorldSpace.rotation);
 			scale(
 				this.gameObject.transform.toWorldSpace.scale.x,
-				this.gameObject.transform.toWorldSpace.scale.y)
+				this.gameObject.transform.toWorldSpace.scale.y);
 			noFill();
 			stroke(this.color);
 			strokeWeight(3);
@@ -366,11 +378,40 @@ CircleCollider.prototype  = {
 		var sin = Math.sin(angle);
 		var cos = Math.cos(angle);
 		return  a*b / Math.sqrt(a*a*sin*sin + b*b*cos*cos);
+	},
+	callScriptsMethods: function() {
+		var scripts = this.gameObject.getComponents(ComponentType.Script);
+		this._collisionInfos.forEach(function(info) {
+			scripts.forEach(function(script) {
+				if(info.isEntering && typeof script.OnTriggerEnter === 'function') {
+					script.OnTriggerEnter(info.other);
+				}
+				if(info.isExiting && typeof script.OnTriggerExit === 'function') {
+					script.OnTriggerExit(info.other);
+				}
+				if(info.isStaying && typeof script.OnTriggerStay === 'function') {
+					script.OnTriggerStay(info.other);
+				}
+			});
+		});
+	},
+	deleteExitingCollisionInfo: function() {
+		for(var i = 0 ; i < this._collisionInfos.length ; i++) {
+			if(!this._collisionInfos[i].isChecked) {
+				this._collisionInfos.splice(i,1);
+				i--;
+			}
+		}
+	},
+	resetCollisionInfo: function() {
+		this._collisionInfos.forEach(function(info) {
+			info.isChecked = false;
+		});
 	}
 };
 
 function BoxCollider() {
-	Collider.call(this,ComponentType.BoxCollider)
+	Collider.call(this,ComponentType.BoxCollider);
 }
 BoxCollider.prototype  = {
 	constructor: BoxCollider,
@@ -440,8 +481,8 @@ GameObject.prototype = {
 		var filtered = [];
 		this._components.forEach(function(component){
 			if(type === ComponentType.Collider) {
-				if(component.type === ComponentType.CircleCollider
-					|| component.type === ComponentType.BoxCollider) {
+				if(component.type === ComponentType.CircleCollider || 
+				   component.type === ComponentType.BoxCollider) {
 						filtered.push(component);
 				}
 			} else if(component.type === type){
